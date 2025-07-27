@@ -1,31 +1,56 @@
-import os
+
 import regex
 
-
-with open('expresiones.txt', 'r') as InFix:
-    for expresion in InFix:
-        expresion = expresion.strip()
-        print(expresion)
-
-
 def evaluar_expresion(expresion):
-    #Aqui va la logica para evaluar, tomarn en cuenta que:
-    # - Las operaciones son: +, -, *, /, ^
-    #Hay que tomar en cuenta los espacios ' '
-    # Restornar True o False si la expresion es valida para evaluar, si no es valida, refactorizarla.
-    #Usar Regex para validar la expresion
     OpValidos = ['+', '-', '*', '/', '^']
-    if expresion == "" or expresion is None:
-        print("La Expresion que se ingreso es invalida")
+    if not expresion or expresion.strip() == "":
+        print("La Expresión que se ingresó es inválida")
         return False
 
-def shuntingyard(expresion):
-    # Aqui va la logica del algoritmo Shunting Yard para convertir la expresion infija a postfija
-    # Retornar la expresion en notacion postfija
+    patron = r'^[\dA-Za-z\s\+\-\*/\^\(\)]+$'
+    if not regex.match(patron, expresion):
+        print(f"Expresión inválida (caracteres no permitidos): {expresion}")
+        return False
 
-    #Esta es la Pila, parece un arreglo, pero se usa como pila
     stack = []
-    #Logica va aqui
+    for char in expresion:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            if not stack or stack.pop() != '(':
+                print(f"Paréntesis no balanceados: {expresion}")
+                return False
 
-    #Evaluar la expresion matematica y devolver el resultado
-    pass
+    if stack:
+        print(f"Paréntesis no balanceados: {expresion}")
+        return False
+
+    return True
+
+
+def shuntingyard(expresion):
+    precedencia = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+    operadores = []
+    salida = []
+
+    tokens = expresion.split()
+
+    for token in tokens:
+        if token.isalnum():
+            salida.append(token)
+        elif token == '(':
+            operadores.append(token)
+        elif token == ')':
+            while operadores and operadores[-1] != '(':
+                salida.append(operadores.pop())
+            operadores.pop()
+        else:
+            while (operadores and operadores[-1] != '(' and
+                   precedencia.get(token, 0) <= precedencia.get(operadores[-1], 0)):
+                salida.append(operadores.pop())
+            operadores.append(token)
+
+    while operadores:
+        salida.append(operadores.pop())
+
+    return ' '.join(salida)
